@@ -1,0 +1,33 @@
+pipeline {
+    agent { node { label 'worker1' } }
+    stages {
+        stage('Prepare') {
+            
+            steps {
+                sh "rm -rf ${path}/* && rm -rf ${path}/.git"
+            }
+        }
+        stage('Clone') {
+            
+            steps {
+                sh "git clone https://${env.gitlabuser}:${env.gitlabtoken}@${repurl} ${path}"
+            }
+        }
+        stage('Create dir and copy') {
+            
+            steps {
+                sh "mkdir -p ${nginxpath}/\$(git describe --tags)t"
+                sh "cp * ${nginxpath}/\$(git describe --tags)"
+            }
+        }             
+        stage('Deploy') {
+            
+            steps {
+                sh "rm -if ${nginxcurrent}"
+                sh "ln -s ${nginxpath}\$(git describe --tags) ${nginxcurrent}"
+            }
+        }       
+
+            
+    }
+}
